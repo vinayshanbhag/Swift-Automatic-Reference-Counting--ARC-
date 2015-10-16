@@ -101,3 +101,28 @@ var usa:Country? = Country(name: "USA", capitalName: "Washington D.C.")
 usa = nil
 
 // Strong reference cycles in closures
+
+// User class has a greet property which is a closure returning a string. The closure refers to self.name creating 
+// a strong reference to the User class, which in turn has a string reference to the closure
+// A capture list is used to resolve such strong reference cycles
+class User {
+    var name:String
+    
+    //lazy var greet:()->String = {"Hello \(self.name)"} // No capture list. This results in a strong reference cycle
+    lazy var greet:()->String = {[unowned self] in "Hello \(self.name)"} // greet is a closure that refers to User (self). And User has a strong reference to greet
+    
+    init(name:String){
+        self.name = name
+    }
+    
+    deinit {
+        print("deinit: User named \(name)")
+    }
+}
+
+var user:User? = User(name: "John")
+user!.greet()
+user = nil // Without a capture list, the strong reference cycle between User and closure greet, prevents deallocation of User instance.
+
+
+
